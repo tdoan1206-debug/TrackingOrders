@@ -11,6 +11,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 
@@ -22,7 +23,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class NotificationQueue extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid")
+    @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
 

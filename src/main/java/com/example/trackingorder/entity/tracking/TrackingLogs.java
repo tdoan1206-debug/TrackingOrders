@@ -10,6 +10,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 
@@ -21,7 +22,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 public class TrackingLogs extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid")
+    @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
 
@@ -42,6 +44,6 @@ public class TrackingLogs extends BaseEntity {
     private Orders orders ;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "updated_by")
+    @JoinColumn(name = "user_id")
     private Users updater ;
 }

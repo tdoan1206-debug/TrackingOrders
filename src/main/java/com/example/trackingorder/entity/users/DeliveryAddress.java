@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.util.List;
 
@@ -19,7 +20,8 @@ import java.util.List;
 @NoArgsConstructor
 public class DeliveryAddress extends BaseEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid")
+    @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
 
@@ -44,5 +46,5 @@ public class DeliveryAddress extends BaseEntity {
     private Users user;
 
     @OneToMany(mappedBy = "deliveryAddress")
-    private List<DeliveryAddress> deliveryAddresses ;
+    private List<Orders> orders ;
 }

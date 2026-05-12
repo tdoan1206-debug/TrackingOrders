@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Table(name = "inventory")
@@ -16,10 +17,10 @@ import lombok.Setter;
 public class Inventory extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid")
+    @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
-
     @Column(name = "quantity_in_stock")
     private Integer quantityInStock ;
 

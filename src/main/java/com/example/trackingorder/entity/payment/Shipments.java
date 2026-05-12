@@ -9,6 +9,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +23,8 @@ import java.util.List;
 public class Shipments extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
+    @GeneratedValue(generator = "uuid")
+    @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
 
@@ -47,7 +49,5 @@ public class Shipments extends BaseEntity {
     @JoinColumn(name = "carrier_id")
     private Carriers carriers ;
 
-    @OneToMany(mappedBy = "shipment")
-    private List<TrackingLogs> trackingLogs ;
 
 }
