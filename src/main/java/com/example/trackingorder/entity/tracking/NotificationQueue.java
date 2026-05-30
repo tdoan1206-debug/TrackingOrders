@@ -28,10 +28,13 @@ public class NotificationQueue extends BaseEntity {
     @Column(name = "id", length = 36)
     private String id;
 
+    @Enumerated(EnumType.STRING)
     private NotifyType type;
 
+    @Enumerated(EnumType.STRING)
     private WorkflowStatus triggerStatus ;
 
+    @Enumerated(EnumType.STRING)
     private NotifyStatus status ;
 
     @Column(name = "scheduled_at")

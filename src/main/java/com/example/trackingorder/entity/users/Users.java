@@ -9,6 +9,7 @@ import com.example.trackingorder.entity.tracking.ProductReviews;
 import com.example.trackingorder.entity.tracking.Returns;
 import com.example.trackingorder.entity.tracking.TrackingLogs;
 import com.example.trackingorder.status.Role;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
@@ -56,27 +57,29 @@ public class Users extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<DeliveryAddress> addresses ;
 
-    @OneToOne(mappedBy = "user")
+    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
     private Carts carts ;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    @JsonIgnore
     private List<Orders> orders ;
 
-    @OneToMany(mappedBy = "shipper")
+    @OneToMany(mappedBy = "shipper", fetch = FetchType.LAZY)
     private List<Shipments> shipments ;
 
-    @OneToMany(mappedBy = "updater")
+    @OneToMany(mappedBy = "updater", fetch = FetchType.LAZY)
     private List<TrackingLogs> trackingLogs ;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<NotificationQueue> notificationQueues ;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<ProductReviews> productReviews ;
 
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     private List<Returns> returns ;
 }

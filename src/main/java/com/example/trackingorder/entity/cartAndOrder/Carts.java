@@ -10,10 +10,11 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Entity
-@Table(name = "coupons")
+@Table(name = "carts")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -26,8 +27,12 @@ public class Carts extends BaseEntity {
     @Column(name = "id", length = 36)
     private String id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "cart_status" )
     private CartStatus status;
+
+    @Column(name = "sub_total" )
+    private BigDecimal subTotal;
 
     @OneToOne(fetch =  FetchType.LAZY)
     @JoinColumn(name = "user_id")
@@ -35,7 +40,5 @@ public class Carts extends BaseEntity {
 
     @OneToMany(mappedBy = "cart")
     private List<CartItems> cartItemsList ;
-
-
 
 }

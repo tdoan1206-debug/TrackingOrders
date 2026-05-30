@@ -30,6 +30,7 @@ public class PaymentTransactions extends BaseEntity {
     @Column(name = "amounts")
     private BigDecimal amounts;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private TransactionStatus status = TransactionStatus.PENDING;
 

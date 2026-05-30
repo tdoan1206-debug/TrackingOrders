@@ -1,12 +1,11 @@
 package com.example.trackingorder.controller;
 
-import com.example.trackingorder.dto.request.CartItems.CartItemsReq;
-import com.example.trackingorder.dto.response.cartItems.CartItemsRespon;
-import com.example.trackingorder.entity.cartAndOrder.CartItems;
-import com.example.trackingorder.entity.users.Users;
+import com.example.trackingorder.dto.request.cartItems.CartItemsReq;
+import com.example.trackingorder.dto.response.cartItems.CartItemsResponse;
 import com.example.trackingorder.service.InterfaceService.CartItemsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,12 +14,15 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @Validated
 public class CartItemsController {
-    private final CartItemsService cartItemsService ;
+    private final CartItemsService cartItemsService;
 
     @PutMapping("{id}")
-    ResponseEntity<CartItemsRespon>  updateQuantity(@PathVariable String id ,
-                                                    @RequestBody CartItemsReq cartItemsReq
-                                                    ){
-
+    @PreAuthorize("hasAnyRole('Buyer')")
+    ResponseEntity<CartItemsResponse> updateQuantity(@PathVariable String id, @RequestBody CartItemsReq cartItemsReq)
+    {
+        CartItemsResponse cartItemsRespon = cartItemsService.updateQuantity(id, cartItemsReq);
+        return ResponseEntity.ok(cartItemsRespon);
     }
+
+
 }

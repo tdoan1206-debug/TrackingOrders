@@ -20,13 +20,14 @@ import java.time.LocalDateTime;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class TrackingLogs extends BaseEntity {
+public class  TrackingLogs extends BaseEntity {
     @Id
     @GeneratedValue(generator = "uuid")
     @UuidGenerator
     @Column(name = "id", length = 36)
     private String id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private WorkflowStatus status;
 

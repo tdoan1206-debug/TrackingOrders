@@ -12,6 +12,7 @@ import com.example.trackingorder.entity.users.DeliveryAddress;
 import com.example.trackingorder.entity.users.Users;
 import com.example.trackingorder.status.OrderStatus;
 import com.example.trackingorder.status.PaymentStatus;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,11 +36,12 @@ public class Orders extends BaseEntity {
     @Column(name = "id", length = 36)
     private String id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
     private OrderStatus orderStatus = OrderStatus.PENDING;
 
     @Column(name = "subtotal")
-    private BigDecimal subtotal;
+    private BigDecimal subTotal;
 
     @Column(name = "discount_amount")
     private BigDecimal discountAmount = BigDecimal.ZERO;
@@ -50,6 +52,7 @@ public class Orders extends BaseEntity {
     @Column(name = "grand_total")
     private BigDecimal grandTotal;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_status")
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
 
@@ -71,6 +74,7 @@ public class Orders extends BaseEntity {
 
 
     @OneToMany(mappedBy = "order")
+    @JsonIgnore
     private List<OrderItems> orderItems ;
 
     @OneToMany(mappedBy = "order")

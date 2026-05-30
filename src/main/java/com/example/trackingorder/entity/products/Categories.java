@@ -24,7 +24,6 @@ public class Categories extends BaseEntity {
     @Column(name = "id", length = 36)
     private String id;
 
-
     @Column(name = "name")
     private String name;
 

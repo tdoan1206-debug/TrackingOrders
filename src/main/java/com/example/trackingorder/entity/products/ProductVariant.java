@@ -57,12 +57,14 @@ public class ProductVariant extends BaseEntity {
     private Products product ;
 
     @OneToOne(mappedBy = "productVariant" , fetch = FetchType.LAZY)
+    @JsonIgnore
     private Inventory inventory ;
 
     @OneToMany(mappedBy = "productVariant")
     private List<CartItems> cartItemsList ;
 
     @OneToMany(mappedBy = "productVariant")
+    @JsonIgnore
     private List<OrderItems> orderItems ;
 
     @OneToMany(mappedBy = "productVariant")

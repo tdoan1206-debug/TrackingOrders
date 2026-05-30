@@ -13,7 +13,7 @@ import org.hibernate.annotations.UuidGenerator;
 import java.util.List;
 
 @Entity
-@Table(name = "categories")
+@Table(name = "products")
 @Getter
 @Setter
 @AllArgsConstructor
@@ -40,6 +40,7 @@ public class Products extends BaseEntity {
     private Users users;
 
     @OneToMany(mappedBy = "product")
-    private List<ProductVariant> productDetails;
+    @JsonIgnore
+    private List<ProductVariant> productVariants;
 
 }

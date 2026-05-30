@@ -48,6 +48,4 @@ public class Shipments extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "carrier_id")
     private Carriers carriers ;
-
-
 }

@@ -32,6 +32,7 @@ public class Coupons extends BaseEntity {
     @Column(name = "coupons_code")
     private String Code;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private Type type;
 
@@ -47,6 +48,7 @@ public class Coupons extends BaseEntity {
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "coupon_status")
     private Status status;
 

@@ -30,6 +30,7 @@ public class PaymentMethods extends BaseEntity {
     @Column(name = "payment_name")
     private String name;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "payment_type")
     private PaymentType type;
 

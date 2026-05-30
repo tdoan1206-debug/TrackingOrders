@@ -32,9 +32,11 @@ public class Returns extends BaseEntity {
     @Column(name = "reason")
     private String reason ;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "origin_type")
     private ReturnType type ;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status")
     private ReturnStatus status ;
 
