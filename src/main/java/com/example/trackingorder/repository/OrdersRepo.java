@@ -61,5 +61,7 @@ public interface OrdersRepo extends JpaRepository<Orders, String>, JpaSpecificat
 
     List<Orders> findByOrderStatus(OrderStatus orderStatus);
 
+
+    @EntityGraph(attributePaths = {"user"})
     Page<Orders> findAllByOrderByCreatedAtDesc(Pageable pageable);
 }

@@ -1,10 +1,9 @@
 package com.example.trackingorder.service.InterfaceService;
 
 import com.example.trackingorder.dto.request.fillter.ProductFilter;
-import com.example.trackingorder.dto.response.product.ProductDetail;
-import com.example.trackingorder.dto.response.product.ProductFeaturedItem;
-import com.example.trackingorder.dto.response.product.ProductFilterResponse;
-import com.example.trackingorder.dto.response.product.ProductResponse;
+import com.example.trackingorder.dto.request.products.CreateProductRequest;
+import com.example.trackingorder.dto.request.products.UpdateProductRequest;
+import com.example.trackingorder.dto.response.product.*;
 
 import java.util.List;
 
@@ -15,4 +14,8 @@ public interface ProductService {
     ProductDetail   getProductDetail(String id);
 
     List<ProductFilterResponse> getProductFilter(ProductFilter productFilter , Integer pageSize , Integer pageNumber) ;
+
+    CreateProductResponse create(CreateProductRequest request , String userName) ;
+
+    void update(UpdateProductRequest request , String variantId , String userName) ;
 }

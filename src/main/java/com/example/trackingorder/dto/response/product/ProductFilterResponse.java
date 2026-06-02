@@ -14,6 +14,6 @@ public class ProductFilterResponse {
     private String sku;
     private String categoryName;
     private BigDecimal price;
-    private int quantityInStock;
+    private Long quantityInStock;
     private InventoryStatus status;
 }

@@ -1,6 +1,7 @@
 package com.example.trackingorder.repository;
 
 import com.example.trackingorder.entity.products.Inventory;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
@@ -13,5 +14,8 @@ public interface InventoryRepo extends JpaRepository<Inventory,String>, JpaSpeci
 
     @Query("SELECT i from Inventory i join fetch i.productVariant where i.productVariant.id in :variantIds")
     List<Inventory> findByProductVariantIdIn(List<String> variantIds);
+
+    @EntityGraph(attributePaths = {"productVariant"})
+    List<Inventory> findAll();
 
 }

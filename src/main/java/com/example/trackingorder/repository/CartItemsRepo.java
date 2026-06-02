@@ -28,4 +28,12 @@ public interface CartItemsRepo extends JpaRepository<CartItems, String>, JpaSpec
     List<CartItems> findAllByCartId(String cartId);
 
     CartItems findByCartIdAndProductVariantId(String cartId, String productVariantId);
+
+    @Query("""
+                select c
+                from CartItems c
+                where c.productVariant.id in :productVariantIds
+                and c.cart.user.userName = :userName
+            """)
+    List<CartItems> findByProductVariantIdInAndUserName(List<String> productVariantIds, String userName);
 }

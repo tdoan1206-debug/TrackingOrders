@@ -7,5 +7,5 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import java.util.Optional;
 
 public interface DeliveryAddressRepo extends JpaRepository<DeliveryAddress,String>, JpaSpecificationExecutor<DeliveryAddress> {
-    Optional<DeliveryAddress> findByIdAndUserId(String id, String userId);
+    Optional<DeliveryAddress> findByIdAndUserId(String id , String userId);
 }

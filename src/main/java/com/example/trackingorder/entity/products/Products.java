@@ -28,7 +28,6 @@ public class Products extends BaseEntity {
     @Column(name = "name")
     private String name;
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     @JsonIgnore
@@ -42,5 +41,4 @@ public class Products extends BaseEntity {
     @OneToMany(mappedBy = "product")
     @JsonIgnore
     private List<ProductVariant> productVariants;
-
 }

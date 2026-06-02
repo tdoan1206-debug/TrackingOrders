@@ -18,6 +18,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
@@ -81,6 +82,7 @@ public class Orders extends BaseEntity {
     private List<PaymentTransactions> paymentTransactions ;
 
     @OneToMany(mappedBy = "order")
+    @BatchSize(size = 20)
     private List<Shipments> shipments ;
 
     @OneToMany(mappedBy = "orders")

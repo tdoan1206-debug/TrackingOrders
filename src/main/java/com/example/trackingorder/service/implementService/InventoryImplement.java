@@ -2,6 +2,7 @@ package com.example.trackingorder.service.implementService;
 
 import com.example.trackingorder.dto.response.inventory.CartItemsAndStatus;
 import com.example.trackingorder.dto.response.inventory.InventoryResponse;
+import com.example.trackingorder.dto.response.inventory.InventoryStatsResponse;
 import com.example.trackingorder.entity.cartAndOrder.CartItems;
 import com.example.trackingorder.entity.cartAndOrder.Carts;
 import com.example.trackingorder.entity.products.Inventory;
@@ -15,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
@@ -24,6 +26,46 @@ import java.util.concurrent.RejectedExecutionException;
 public class InventoryImplement implements InventoryService {
     private final InventoryRepo inventoryRepo;
     private final CartsRepo cartsRepo;
+
+    @Override
+    public InventoryStatsResponse getStats() {
+        List<Inventory> inventories = inventoryRepo.findAll();
+        BigDecimal totalInventoryValue = BigDecimal.ZERO;
+        long lowStockCount = 0;
+        long outOfStockCount = 0;
+        long inStockCount = 0;
+
+        for (Inventory inventory : inventories) {
+
+            Long quantity = inventory.getQuantityInStock();
+            
+            BigDecimal price = inventory.getProductVariant().getPrice();
+            
+            totalInventoryValue = totalInventoryValue.add(price.multiply(BigDecimal.valueOf(quantity)));
+
+            // Thống kê trạng thái
+            InventoryStatus status = inventory.getStatus();
+
+            if (status == InventoryStatus.IN_STOCK) {
+                inStockCount++;
+            } else if (status == InventoryStatus.LIMIDTED_STOCK) {
+                lowStockCount++;
+            } else if (status == InventoryStatus.OUT_OF_STOCK) {
+                outOfStockCount++;
+            }
+        }
+
+        InventoryStatsResponse response = new InventoryStatsResponse();
+
+        response.setTotalInventoryValue(totalInventoryValue);
+        response.setTotalProducts(inventories.size());
+        response.setInStockCount(inStockCount);
+        response.setLowStockCount(lowStockCount);
+        response.setOutOfStockCount(outOfStockCount);
+
+        return response;
+
+    }
 
     @Override
     @Transactional

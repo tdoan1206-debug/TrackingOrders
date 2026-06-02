@@ -2,12 +2,12 @@ package com.example.trackingorder.controller;
 
 import com.example.trackingorder.dto.request.fillter.OrderFillter;
 import com.example.trackingorder.dto.request.fillter.ProductFilter;
+import com.example.trackingorder.dto.request.products.CreateProductRequest;
+import com.example.trackingorder.dto.request.products.UpdateProductRequest;
 import com.example.trackingorder.dto.response.order.OrderResponse;
-import com.example.trackingorder.dto.response.product.ProductDetail;
-import com.example.trackingorder.dto.response.product.ProductFeaturedItem;
-import com.example.trackingorder.dto.response.product.ProductFilterResponse;
-import com.example.trackingorder.dto.response.product.ProductResponse;
+import com.example.trackingorder.dto.response.product.*;
 import com.example.trackingorder.service.InterfaceService.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -28,14 +28,12 @@ public class ProductController {
         return  ResponseEntity.ok(response) ;
     }
 
-    // API 1: Sản phẩm nổi bật (carousel trang chủ)
     @GetMapping("/featured")
     public ResponseEntity<List<ProductFeaturedItem>> getFeaturedProducts(@RequestParam(name = "page_size") Integer pageSize ,
                                                                          @RequestParam(name = "page_number") Integer pageNumber) {
         return ResponseEntity.ok(productService.getFeaturedProducts(pageSize,pageNumber));
     }
 
-    // API 2: Chi tiết sản phẩm (click vào 1 sản phẩm)
     @GetMapping("/{id}")
     public ResponseEntity<ProductDetail> getProductDetail(@PathVariable String id) {
         return ResponseEntity.ok(productService.getProductDetail(id));
@@ -49,5 +47,21 @@ public class ProductController {
         return ResponseEntity.ok(responseList) ;
     }
 
+    @PostMapping
+//    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    public ResponseEntity<CreateProductResponse> create(@Valid @RequestBody CreateProductRequest request, Principal principal) {
+
+        CreateProductResponse response = productService.create(request , principal.getName());
+        return ResponseEntity.ok(response);
+    }
+
+    @PutMapping("/{variantId}")
+//    @PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    public ResponseEntity<String> update(@Valid @RequestBody UpdateProductRequest request,
+                                                        @PathVariable String variantId, Principal principal) {
+
+        productService.update(request ,variantId, principal.getName());
+        return ResponseEntity.ok("Cập Nhật thành công");
+    }
 
 }

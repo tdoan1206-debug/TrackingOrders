@@ -8,6 +8,19 @@ spring:
     username: root
     password: 123456
     url: jdbc:mysql://localhost:3306/trackingorder2
+#  mail:
+#    host: smtp.gmail.com
+#    port: 587
+#    username: trackingorder.shop@gmail.com
+#    password: abcdefghijklmnop
+#
+#    properties:
+#      mail:
+#        smtp:
+#          auth: true
+#          starttls:
+#            enable: true
+
 
 
 server:

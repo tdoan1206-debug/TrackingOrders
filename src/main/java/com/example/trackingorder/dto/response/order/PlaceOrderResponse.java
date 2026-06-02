@@ -14,5 +14,5 @@ public class PlaceOrderResponse {
     private BigDecimal grandTotal;
     private String orderStatus;
     private String paymentStatus;
-    private String message;
+    private String message; 
 }

@@ -1,6 +1,7 @@
 package com.example.trackingorder.controller;
 
 import com.example.trackingorder.dto.response.inventory.InventoryResponse;
+import com.example.trackingorder.dto.response.inventory.InventoryStatsResponse;
 import com.example.trackingorder.service.InterfaceService.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -21,5 +22,11 @@ public class InventoryController {
         InventoryResponse response =  inventoryService.refreshInventory( principal.getName()) ;
 
        return  ResponseEntity.ok(response) ;
+    }
+
+    @GetMapping("/stats")
+    //@PreAuthorize("hasAnyRole('SELLER', 'ADMIN')")
+    public ResponseEntity<InventoryStatsResponse> getStats() {
+        return ResponseEntity.ok(inventoryService.getStats());
     }
 }

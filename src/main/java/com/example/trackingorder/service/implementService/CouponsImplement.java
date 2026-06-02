@@ -32,14 +32,40 @@ public class CouponsImplement implements CouponsService {
         if (coupons.getUseCount() >= coupons.getUseLimit()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Coupon đã hết lượt sử dụng");
         }
+
         coupons.setUseCount(coupons.getUseCount() + 1);
         couponsRepo.save(coupons);
 
-        CouponsResponse couponsResponse = new CouponsResponse();
 
+        CouponsResponse couponsResponse = new CouponsResponse();
         couponsResponse.setId(coupons.getId());
         couponsResponse.setCouponType(coupons.getType());
         couponsResponse.setValue(coupons.getValue());
         return couponsResponse;
+    }
+    @Override
+    @Transactional
+    public CouponsResponse validateCoupon(String couponCode) {
+
+        Coupons coupons = couponsRepo.findByCodeAndStatus(
+                        couponCode,
+                        Status.ACTIVE)
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Coupon không tồn tại"));
+
+        if (coupons.getUseCount() >= coupons.getUseLimit()) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Coupon đã hết lượt sử dụng");
+        }
+
+        CouponsResponse response = new CouponsResponse();
+        response.setId(coupons.getId());
+        response.setCouponType(coupons.getType());
+        response.setValue(coupons.getValue());
+
+        return response;
     }
 }

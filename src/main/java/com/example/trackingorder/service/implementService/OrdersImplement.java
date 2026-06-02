@@ -2,9 +2,7 @@ package com.example.trackingorder.service.implementService;
 
 import com.example.trackingorder.configMapper.*;
 import com.example.trackingorder.dto.request.fillter.OrderFillter;
-import com.example.trackingorder.dto.request.order.BuyNowRequest;
-import com.example.trackingorder.dto.request.order.OrderSummaryReq;
-import com.example.trackingorder.dto.request.order.PlaceOrderReq;
+import com.example.trackingorder.dto.request.order.*;
 import com.example.trackingorder.dto.response.coupons.CouponsResponse;
 import com.example.trackingorder.dto.response.order.*;
 import com.example.trackingorder.entity.cartAndOrder.*;
@@ -61,11 +59,11 @@ public class OrdersImplement implements OrdersService {
     public List<AllOrderResponse> getLatestOrders(Integer pageSize, Integer pageNumber) {
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
 
-        Page<Orders> orders = ordersRepo.findAllByOrderByCreatedAtDesc(pageable) ;
+        Page<Orders> orders = ordersRepo.findAllByOrderByCreatedAtDesc(pageable);
 
         List<AllOrderResponse> responseList = new ArrayList<>();
 
-        for (Orders order : orders.getContent()){
+        for (Orders order : orders.getContent()) {
             AllOrderResponse response = new AllOrderResponse();
 
             response.setOrderId(order.getId());
@@ -97,18 +95,17 @@ public class OrdersImplement implements OrdersService {
         BigDecimal revenue = ordersRepo.getTotalRevenueShipping();
 
         RevenueResponse response = new RevenueResponse();
-        if(revenue != null){
-            response.setTotalRevenue(revenue) ;
-        }
-        else {
-            response.setTotalRevenue(BigDecimal.ZERO) ;
+        if (revenue != null) {
+            response.setTotalRevenue(revenue);
+        } else {
+            response.setTotalRevenue(BigDecimal.ZERO);
         }
         return response;
     }
 
     @Override
     public OrderDetailResponse getOrderDetail(String userName, String orderId) {
-        Orders order = ordersRepo.findByIdAndUser_UserName(orderId,userName)
+        Orders order = ordersRepo.findByIdAndUser_UserName(orderId, userName)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         List<OrderItems> items = orderItemsRepo.findByOrder_Id(orderId);
@@ -117,7 +114,7 @@ public class OrdersImplement implements OrdersService {
 
         List<OrderItem> itemResponses = new ArrayList<>();
 
-        for (OrderItems item : items){
+        for (OrderItems item : items) {
             OrderItem dto = orderItemMapper.toDto(item);
             itemResponses.add(dto);
         }
@@ -141,11 +138,11 @@ public class OrdersImplement implements OrdersService {
 
         Pageable pageable = PageRequest.of(pageNumber - 1, pageSize);
 
-        Page<Orders> orders = ordersRepo.findAllByUser_UserName(userName,pageable) ;
+        Page<Orders> orders = ordersRepo.findAllByUser_UserName(userName, pageable);
 
         List<MyOrderResponse> responseList = new ArrayList<>();
 
-        for (Orders order : orders.getContent()){
+        for (Orders order : orders.getContent()) {
             MyOrderResponse response = new MyOrderResponse();
 
             response.setId(order.getId());
@@ -194,6 +191,7 @@ public class OrdersImplement implements OrdersService {
     }
 
     @Override
+    @Transactional
     public OrderStatusResponse confirmOrder(String id, String userName) {
         Users user = userRepo.findByUserName(userName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không timf thấy người dùng "));
@@ -205,6 +203,7 @@ public class OrdersImplement implements OrdersService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Chỉ Xác nhận được đơn PENDING.");
         }
 
+        Map<String, Inventory> inventoryMap = new HashMap<>();
         for (OrderItems item : order.getOrderItems()) {
             Inventory inventory = item.getProductVariant().getInventory();
 
@@ -213,15 +212,17 @@ public class OrdersImplement implements OrdersService {
                         "Sản phẩm không đủ tồn kho");
             }
 
-            inventory.setQuantityInStock(inventory.getQuantityInStock() - item.getQuantity());
+            Long reservedQuantity = inventory.getReservedQuantity() - item.getQuantity();
+            inventory.setReservedQuantity(reservedQuantity);
 
             if (inventory.getQuantityInStock() == 0) {
                 inventory.setStatus(InventoryStatus.OUT_OF_STOCK);
             } else if (inventory.getQuantityInStock() < 5) {
                 inventory.setStatus(InventoryStatus.LIMIDTED_STOCK);
             }
-            inventoryRepo.save(inventory);
+            inventoryMap.put(inventory.getId(), inventory);
         }
+        inventoryRepo.saveAll(inventoryMap.values());
 
         OrderStatus previous = order.getOrderStatus();
         OrderStatus current = OrderStatus.CONFIRMED;
@@ -260,14 +261,19 @@ public class OrdersImplement implements OrdersService {
         order.setOrderStatus(current);
         ordersRepo.save(order);
 
+        Map<String, Inventory> inventoryMap = new HashMap<>();
+        Inventory inventory = null;
         for (OrderItems item : order.getOrderItems()) {
 
-            Inventory inventory = item.getProductVariant().getInventory();
+            inventory = item.getProductVariant().getInventory();
 
             inventory.setQuantityInStock(inventory.getQuantityInStock() + item.getQuantity());
 
             inventory.setReservedQuantity(inventory.getReservedQuantity() - item.getQuantity());
+
+            inventoryMap.put(inventory.getId(), inventory);
         }
+        inventoryRepo.saveAll(inventoryMap.values());
 
         TrackingLogs log = trackingLogMapper.toTrackingLog(order, user, WorkflowStatus.CANCELLED, "ĐƠn hàng đã bị hủy ", LocalDateTime.now());
         trackingLogRepo.save(log);
@@ -381,7 +387,6 @@ public class OrdersImplement implements OrdersService {
 
         }
         return orderResponseList;
-
     }
 
     @Override
@@ -397,17 +402,16 @@ public class OrdersImplement implements OrdersService {
         Users user = userRepo.findByUserName(userName)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Không thấy nguời dùng"));
 
-        Long available = inventory.getQuantityInStock() - inventory.getReservedQuantity();
-        if (available < request.getQuantity()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm không đủ số lượng trong kho. Còn lại: " + available);
-        }
-
-
         DeliveryAddress deliveryAddress = deliveryAddressRepo.findByIdAndUserId(request.getDeliveryAddressId(), user.getId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Địa chỉ giao hàng không hợp lệ"));
 
         PaymentMethods paymentMethod = paymentMethodRepo.findByIdAndIsActive(request.getPaymentMethodId(), true)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Phương thức thanh toán không hợp lệ"));
+
+        Long available = inventory.getQuantityInStock() - inventory.getReservedQuantity();
+        if (available < request.getQuantity()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm không đủ số lượng trong kho. Còn lại: " + available);
+        }
 
         BigDecimal subtotal = productVariant.getPrice().multiply(BigDecimal.valueOf(request.getQuantity()));
 
@@ -428,10 +432,10 @@ public class OrdersImplement implements OrdersService {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Mã giảm giá hết lượt sử dụng ");
             }
 
-            if ("PERCENT".equals(coupon.getType())) {
+            if (coupon.getType() == Type.PERCENT) {
                 discountAmount = subtotal.multiply(coupon.getValue()).divide(BigDecimal.valueOf(100), 2);
             } else {
-                discountAmount = coupon.getValue().min(subtotal); // không giảm quá subtotal
+                discountAmount = coupon.getValue();
             }
 
             // Tăng use_count
@@ -469,19 +473,46 @@ public class OrdersImplement implements OrdersService {
 
     @Override
     @Transactional
-    public OrdersSummaryResponse getOrdersSummary(OrderSummaryReq orderSummaryReq, String userName) {
-        BigDecimal subTotal = BigDecimal.ZERO;
-        List<CartItems> cartItemsList = cartItemsRepo.findByIdInAndUserName(orderSummaryReq.getCartItemsId(), userName);
-
-        if (cartItemsList.size() != orderSummaryReq.getCartItemsId().size()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Không có quyền truy cập");
+    public OrdersSummaryResponse getOrdersSummary(OrderSummaryRequest request, String userName) {
+        if (request.getOrderSummaryItemRequests() == null || request.getOrderSummaryItemRequests().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Danh sách sản phẩm không được để trống");
         }
-        for (CartItems cartItems : cartItemsList) {
-            subTotal = subTotal.add(cartItems.getProductVariant().getPrice().multiply(BigDecimal.valueOf(cartItems.getQuantity())));
+
+        List<String> productVariantIds = new ArrayList<>();
+
+        for (OrderSummaryItemRequest item : request.getOrderSummaryItemRequests()) {
+            productVariantIds.add(item.getProductId());
+        }
+
+        List<CartItems> cartItemsList = cartItemsRepo.findByProductVariantIdInAndUserName(productVariantIds, userName);
+
+        if (cartItemsList.size() != productVariantIds.size()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Có sản phẩm không thuộc giỏ hàng");
+        }
+
+        Map<String, CartItems> cartItemMap = new HashMap<>();
+        for (CartItems cartItem : cartItemsList) {
+            cartItemMap.put(cartItem.getProductVariant().getId(), cartItem);
+        }
+
+        BigDecimal subTotal = BigDecimal.ZERO;
+
+        for (OrderSummaryItemRequest item : request.getOrderSummaryItemRequests()) {
+            CartItems cartItem = cartItemMap.get(item.getProductId());
+
+            if (cartItem == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm không tồn tại");
+            }
+
+            if (!cartItem.getQuantity().equals(item.getQuantity())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                        "Số lượng sản phẩm đã thay đổi, hãy nhập đúng");
+            }
+            subTotal = subTotal.add(cartItem.getProductVariant().getPrice().multiply(BigDecimal.valueOf(cartItem.getQuantity())));
         }
 
         BigDecimal discountValue = BigDecimal.ZERO;
-        CouponsResponse coupons = couponsService.getCoupons(orderSummaryReq.getCouponCode());
+        CouponsResponse coupons = couponsService.validateCoupon(request.getPromotionCode());
 
         if (coupons.getCouponType() == Type.PERCENT) {
             discountValue = subTotal.multiply(coupons.getValue()).divide(BigDecimal.valueOf(100));
@@ -508,14 +539,30 @@ public class OrdersImplement implements OrdersService {
         PaymentMethods paymentMethod = paymentMethodRepo.findByIdAndIsActive(placeOrderReq.getPaymentMethodId(), true)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Phương thức thanh toán không hợp lệ"));
 
-        List<CartItems> cartItems = cartItemsRepo.findByIdInAndUserName(placeOrderReq.getCartItemIds(), userName);
-        if (cartItems.size() != placeOrderReq.getCartItemIds().size()) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Cart item không hợp lệ");
+        List<String> productVariantIds = new ArrayList<>();
+        for (OrderSummaryItemRequest item : placeOrderReq.getOrderSummaryItemRequests()) {
+            productVariantIds.add(item.getProductId());
         }
 
-        List<String> productVariantIds = new ArrayList<>();
-        for (CartItems items : cartItems) {
-            productVariantIds.add(items.getProductVariant().getId());
+        List<CartItems> cartItems = cartItemsRepo
+                .findByProductVariantIdInAndUserName(productVariantIds, userName);
+
+        Map<String, CartItems> cartMap = new HashMap<>();
+
+        for (CartItems cartItem : cartItems) {
+            cartMap.put(cartItem.getProductVariant().getId(), cartItem);
+        }
+
+
+        List<ProductVariant> variants = productVariantRepo.findAllById(productVariantIds);
+        if (variants.size() != productVariantIds.size()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Có sản phẩm không tồn tại");
+        }
+
+        Map<String, ProductVariant> variantMap = new HashMap<>();
+
+        for (ProductVariant variant : variants) {
+            variantMap.put(variant.getId(), variant);
         }
 
         List<Inventory> inventoryList = inventoryRepo.findByProductVariantIdIn(productVariantIds);
@@ -523,31 +570,38 @@ public class OrdersImplement implements OrdersService {
         Map<String, Inventory> inventoryMap = new HashMap<>();
 
         for (Inventory inventory : inventoryList) {
-            String productVariantid = inventory.getProductVariant().getId();
-            inventoryMap.put(productVariantid, inventory);
+            inventoryMap.put(inventory.getProductVariant().getId(), inventory);
         }
 
         BigDecimal subtotal = BigDecimal.ZERO;
         List<Inventory> inventoriesToUpdate = new ArrayList<>();
-        for (CartItems item : cartItems) {
-            String productVariantId = item.getProductVariant().getId();
+        for (OrderSummaryItemRequest item : placeOrderReq.getOrderSummaryItemRequests()) {
 
-            Inventory inventory = inventoryMap.get(productVariantId);
+            CartItems cartItem = cartMap.get(item.getProductId());
+            if (cartItem == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm không tồn tại trong giỏ hàng");
+            }
+
+            if (!cartItem.getQuantity().equals(item.getQuantity())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Số lượng sản phẩm trong giỏ hàng đã thay đổi");
+            }
+
+            ProductVariant variant = variantMap.get(item.getProductId());
+
+            Inventory inventory = inventoryMap.get(item.getProductId());
             if (inventory == null) {
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Sản phẩm không có trong kho");
             }
 
             long available = inventory.getQuantityInStock() - inventory.getReservedQuantity();
             if (available < item.getQuantity()) {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Sản phẩm chỉ còn " + available);
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Sản phẩm chỉ còn " + available);
             }
-            subtotal = subtotal.add(item.getProductVariant().getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+            subtotal = subtotal.add(variant.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
 
             inventory.setReservedQuantity(inventory.getReservedQuantity() + item.getQuantity());
             inventoriesToUpdate.add(inventory);
 
-            item.setIsDeleted(true);
         }
 
         BigDecimal discountAmount = BigDecimal.ZERO;
@@ -569,23 +623,39 @@ public class OrdersImplement implements OrdersService {
         ordersRepo.save(order);
 
         List<OrderItems> orderItemsList = new ArrayList<>();
+        for (OrderSummaryItemRequest item : placeOrderReq.getOrderSummaryItemRequests()) {
 
-        for (CartItems item : cartItems) {
-            OrderItems orderItem = orderItemMapper.toOrderItems(order, item);
+            ProductVariant productVariant = variantMap.get(item.getProductId());
+            OrderItems orderItem = new OrderItems();
+
+            orderItem.setOrder(order);
+            orderItem.setProductVariant(productVariant);
+            orderItem.setQuantity(item.getQuantity());
+            orderItem.setPrice(productVariant.getPrice());
+
             orderItemsList.add(orderItem);
         }
 
         orderItemsRepo.saveAll(orderItemsList);
         inventoryRepo.saveAll(inventoriesToUpdate);
-        cartItemsRepo.saveAll(cartItems);
 
+
+        if (placeOrderReq.getOrderSource() == OrderSource.CART) {
+
+            List<CartItems> cartItemss = cartItemsRepo.findByProductVariantIdInAndUserName(productVariantIds, userName);
+
+            for (CartItems cartItem : cartItems) {
+                cartItem.setIsDeleted(true);
+            }
+            cartItemsRepo.saveAll(cartItemss);
+        }
 
         // 11. Tạo tracking log đầu tiên
         TrackingLogs trackingLog = trackingLogMapper.toTrackingLog(order, user, WorkflowStatus.PENDING,
                 "Đơn hàng vừa được tạo qua Mua Ngay", LocalDateTime.now());
+        trackingLogRepo.save(trackingLog);
 
         PlaceOrderResponse response = placeOrderMapper.toResponse(order);
         return response;
-
     }
 }

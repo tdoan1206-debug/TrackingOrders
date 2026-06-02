@@ -3,6 +3,7 @@ package com.example.trackingorder.service.InterfaceService;
 import com.example.trackingorder.dto.request.fillter.OrderFillter;
 import com.example.trackingorder.dto.request.order.BuyNowRequest;
 import com.example.trackingorder.dto.request.order.OrderSummaryReq;
+import com.example.trackingorder.dto.request.order.OrderSummaryRequest;
 import com.example.trackingorder.dto.request.order.PlaceOrderReq;
 import com.example.trackingorder.dto.response.order.*;
 
@@ -10,7 +11,7 @@ import java.util.List;
 
 
 public interface OrdersService {
-    OrdersSummaryResponse getOrdersSummary(OrderSummaryReq orderSummaryReq, String userName);
+    OrdersSummaryResponse getOrdersSummary(OrderSummaryRequest request, String userName);
 
     PlaceOrderResponse placeOrder(PlaceOrderReq placeOrderReq, String userName);
 

@@ -3,6 +3,7 @@ package com.example.trackingorder.controller;
 import com.example.trackingorder.dto.request.fillter.OrderFillter;
 import com.example.trackingorder.dto.request.order.BuyNowRequest;
 import com.example.trackingorder.dto.request.order.OrderSummaryReq;
+import com.example.trackingorder.dto.request.order.OrderSummaryRequest;
 import com.example.trackingorder.dto.request.order.PlaceOrderReq;
 import com.example.trackingorder.dto.response.order.*;
 import com.example.trackingorder.service.InterfaceService.OrdersService;
@@ -25,8 +26,8 @@ public class OrdersController {
     private final OrdersService ordersService ;
 
     @PostMapping("/summary")
-    ResponseEntity<OrdersSummaryResponse> getSummary(@RequestBody OrderSummaryReq orderSummaryReq, Principal principal){
-        OrdersSummaryResponse response = ordersService.getOrdersSummary(orderSummaryReq,principal.getName());
+    ResponseEntity<OrdersSummaryResponse> getSummary(@RequestBody OrderSummaryRequest request, Principal principal){
+        OrdersSummaryResponse response = ordersService.getOrdersSummary(request,principal.getName());
         return ResponseEntity.ok(response) ;
     }
 
@@ -101,6 +102,7 @@ public class OrdersController {
 
     @GetMapping("/revenue")
     public ResponseEntity<RevenueResponse> getRevenue() {
+
         return ResponseEntity.ok(ordersService.getRevenue());
     }
 
